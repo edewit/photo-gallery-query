@@ -10,6 +10,8 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import io.quarkus.panache.common.Sort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,9 +60,14 @@ public class QueryService {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response readCategoryOrderedByLikes(@QueryParam("category") String category) {
-        List<QueryItem> items = QueryItem.find("FROM QueryItem WHERE category =?1 ORDER BY likes DESC", category).list();
-        LOG.info("Returned {} items in category {}", items.size(), category);
-        return Response.ok(items).build();
+        if (category != null) {
+            List<QueryItem> items = QueryItem.find("FROM QueryItem WHERE category =?1 ORDER BY likes DESC", category).list();
+            LOG.info("Returned {} items in category {}", items.size(), category);
+            return Response.ok(items).build();
+        } else {
+            final List<PanacheEntityBase> items = QueryItem.listAll(Sort.descending("likes"));
+            return Response.ok(items).build();
+        }
     }
 
 }
